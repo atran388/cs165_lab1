@@ -1,0 +1,22 @@
+user 10 0 alice
+add 10 0 alice-key
+change 10 0 bob
+user 20 1 42
+user 30 2 86
+change 20 1 43
+change 30 2 87
+add 30 2 10
+display 10
+display 20
+display 30
+user 10 1 43
+remove 10
+remove 20
+remove 30
+user 10 1 44
+user 20 2 45
+user 30 0 charlie
+add 20 2 30
+display 10
+display 20
+display 30

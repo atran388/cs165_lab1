@@ -1,0 +1,17 @@
+group 1
+group 2
+group 3
+show 1
+show 2
+show 3
+purge 1
+purge 2
+purge 3
+group 1
+group 2
+group 3
+group 4
+show 1
+show 2
+show 3
+show 4

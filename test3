@@ -1,0 +1,36 @@
+user 10 0 alice
+add 10 0 alice-key
+user 20 1 42
+user 30 2 86
+add 30 2 10
+display 10
+display 20
+display 30
+group 1
+group 2
+group 3
+join 10 1
+join 20 1
+user 40 0 bob
+add 40 0 bob-key
+user 50 1 43
+join 30 2
+join 40 3
+join 50 3
+show 1
+show 2
+show 3
+purge 1
+purge 2
+purge 3
+group 1
+group 2
+group 3
+join 10 3
+join 20 3
+join 30 1
+join 40 1
+join 50 2
+show 1
+show 2
+show 3

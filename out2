@@ -1,0 +1,45 @@
+GROUP_NEW: added new group 1
+GROUP_NEW: added new group 2
+GROUP_NEW: added new group 3
+GROUP_SHOW: showing group 1: res: 0
+
+======== group: 1 ========
+
+
+GROUP_SHOW: showing group 2: res: 0
+
+======== group: 2 ========
+
+
+GROUP_SHOW: showing group 3: res: 0
+
+======== group: 3 ========
+
+
+GROUP_PURGE: removing group 1: res: 0
+GROUP_PURGE: removing group 2: res: 0
+GROUP_PURGE: removing group 3: res: 0
+GROUP_NEW: added new group 1
+GROUP_NEW: added new group 2
+GROUP_NEW: added new group 3
+GROUP_NEW: added new group 4
+GROUP_SHOW: showing group 1: res: 0
+
+======== group: 1 ========
+
+
+GROUP_SHOW: showing group 2: res: 0
+
+======== group: 2 ========
+
+
+GROUP_SHOW: showing group 3: res: 0
+
+======== group: 3 ========
+
+
+GROUP_SHOW: showing group 4: res: 0
+
+======== group: 4 ========
+
+

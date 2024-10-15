@@ -1,0 +1,29 @@
+USER_NEW for index 10 type 0 and name/id alice: result 0
+USER_ADD for user 10 and type 0 to add info alice-key: result 0
+USER_CHANGE for user 10 and type 0 to add secret bob : result 0
+USER_NEW for index 20 type 1 and name/id 42: result 0
+USER_NEW for index 30 type 2 and name/id 86: result 0
+USER_CHANGE for user 20 and type 1 to add secret 43 : result 0
+USER_CHANGE for user 30 and type 2 to add secret 87 : result 0
+USER_ADD for user 30 and type 2 to add info 10: result 0
+****** student (10): bob *******
+USER_DISPLAY for user 10(0) : result 0
+****** anonymous (20): 43 *******
+USER_DISPLAY for user 20(1) : result 0
+****** spy (30)  *******
+USER_DISPLAY for user 30(2) : result 0
+ERR: failed command: cmd 6 for line 10 1 43
+
+USER_REMOVE for user 10(0) : result 0
+USER_REMOVE for user 20(1) : result 0
+USER_REMOVE for user 30(2) : result 0
+USER_NEW for index 10 type 1 and name/id 44: result 0
+USER_NEW for index 20 type 2 and name/id 45: result 0
+USER_NEW for index 30 type 0 and name/id charlie: result 0
+USER_ADD for user 20 and type 2 to add info 30: result 0
+****** anonymous (10): 44 *******
+USER_DISPLAY for user 10(1) : result 0
+****** spy (20)  *******
+USER_DISPLAY for user 20(2) : result 0
+****** student (30): charlie *******
+USER_DISPLAY for user 30(0) : result 0
