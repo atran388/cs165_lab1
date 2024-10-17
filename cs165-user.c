@@ -52,30 +52,89 @@ int student_change( student_t *s, char *name ) {
 }
 
 int student_remove( student_t *s ) {
-  // figure out which student type it is: student anon or spy
-  // write helper function to clean up data fields of specific type
-  // free pointer
-  memset( s->index , 0, MAX_STRING );
-  memset( s->name , 0, MAX_STRING );
-  memset( s->secret , 0, MAX_STRING );
-  memset( s->group , 0, MAX_STRING );
+  if (s == NULL) {
+    return -1;
+  }
+  if (s->group != NULL) {
+    free(s->group);
+  }
   
   free(s);
 
   return 0;
 }
 
-int student_display( student_t *s ) {
-  return s->index;
-}
-
 int student_join( student_t *s, char *group_index ) {
-  strcpy( s->join , group_index );
+  if (s->group != NULL) {
+    return -1;
+  }
+  group_t* g = find_group(group_index);
+  group_add(g, (user_t*)s);
 
   return 0;
 }
 
 int student_leave( student_t *s ) {
+  return 0;
+}
+
+int user_display( user_t *u )
+{
+  switch( u->type ) {
+  case STUDENT_USER:
+    ((student_t *)u)->display((student_t *)u);
+    break;
+  case ANON_USER:
+    ((anon_t *)u)->display((anon_t *)u);
+    break;
+  case SPY_USER:
+    ((spy_t *)u)->display((spy_t *)u);
+    break;
+  default:
+    printf("No display for user %d\n", u->index);
+  }
+
+  return 0;
+}
+
+int anon_display( anon_t *a )
+{
+  fprintf( ofile, "****** anonymous (%d): %d *******\n", a->index, a->id );
+  
+  return 0;
+}
+
+int student_display( student_t *s )
+{
+  fprintf( ofile, "****** student (%d): %s *******\n", s->index, s->name );
+
+  return 0;
+}
+
+int spy_display( spy_t *m )
+{
+  fprintf( ofile, "****** spy (%d)  *******\n", m->index );
+  
+  return 0;
+}
+
+int group_show( group_t *g )
+{
+  fprintf( ofile, "\n======== group: %d ========\n\n", g->index );
+  
+  list_t *members = g->members;
+
+  if ( !members ) return -1;
+  
+  elt_t *e = members->head;
+  while ( e ) {
+    user_t *u = (user_t *)e->obj;
+    user_display( u );
+    e = e->next;
+  }
+
+  fprintf( ofile, "\n");
+  
   return 0;
 }
 
