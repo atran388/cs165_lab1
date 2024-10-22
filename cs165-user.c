@@ -73,11 +73,6 @@ int student_remove( student_t *s ) {
   return 0;
 }
 
-int student_display( student_t *s ) {
-  fprintf(ofile, "****** Student (%d): %s ******\n", s->index, s->name);
-  return 0;
-}
-
 int student_join( student_t *s, char *group_index ) {
   group_t *group = find_group(group_index);
   if (!group) {
@@ -141,24 +136,6 @@ int spy_change( spy_t *m, char *id_str )
 int spy_remove( spy_t *a )
 {
   free(a);
-  return 0;
-}
-
-int spy_display( spy_t *m )
-{
-  if (!m) {
-      return -1;  // Check if the spy object is valid
-  }
-
-  // Display the spy's information
-  if (m->real) {
-      // If the spy is linked to a real user, display the real user's index
-      fprintf(ofile, "****** Spy (%d) ******\n", m->index);
-  } else {
-      // If no real user is linked, just display the spy's ID
-      fprintf(ofile, "Spy ID: %d, Not assigned to a real user\n", m->id);
-  }
-
   return 0;
 }
 
@@ -237,12 +214,6 @@ int anon_remove( anon_t *a )
   return 0;
 }
 
-int anon_display( anon_t *a )
-{
-  fprintf(ofile, "****** Anonymous (%d): %d ******\n", a->index, a->id);
-  return 0;
-}
-
 int anon_join( anon_t *a, char *group_index )
 {
   group_t *group = find_group(group_index);
@@ -290,68 +261,113 @@ group_t *find_group(char *group_index_str) {
 }
 
 int group_purge(group_t *group) {
-  elt_t *cur = group->members->head = NULL;
-  elt_t *next;
+    elt_t *cur = group->members->head;
+    elt_t *next;
 
-  // Free all group members
-  while (cur) {
-      next = cur->next;
+    // Iterate over all group members
+    while (cur) {
+        next = cur->next;
+        // Do NOT free the user object here, just remove the group link
+        user_t *user = (user_t *)cur->obj;
+        if (user) {
+            // Unlink user from the group, but don't free the user
+            user->group = NULL;
+        }
+        free(cur);  // Free the member element itself
+        cur = next;
+    }
 
-      user_t *user = (user_t *)cur->obj;
-      if (user) {
-          // Remove the user from the group and free the user
-          user_remove(user);
-      }
+    // Remove the group from the system
+    elt_t *prev = NULL;
+    elt_t *group_elt = users.groups->head;
+    while (group_elt) {
+        if (group_elt->obj == group) {
+            if (prev) {
+                prev->next = group_elt->next;
+            } else {
+                users.groups->head = group_elt->next;
+            }
+            free(group_elt);  // Free the group's element in the list
+            break;
+        }
+        prev = group_elt;
+        group_elt = group_elt->next;
+    }
 
-      free(cur);  // Free the member element
-      cur = next;
+    // Free the group structure and its members list container
+    free(group->members);  // Free the members list container
+    free(group);            // Free the group itself
+    return 0;
+}
+
+int group_show( group_t *g )
+{
+  fprintf( ofile, "\n======== group: %d ========\n\n", g->index );
+  
+  list_t *members = g->members;
+
+  if ( !members ) return -1;
+  
+  elt_t *e = members->head;
+  while ( e ) {
+    user_t *u = (user_t *)e->obj;
+    user_display( u );
+    e = e->next;
   }
 
-  // Remove the group from the system
-  elt_t *prev = NULL;
-  elt_t *group_elt = users.groups->head = NULL;
-  while (group_elt) {
-      if (group_elt->obj == group) {
-          if (prev) {
-              prev->next = group_elt->next;
-          } else {
-              users.groups->head = group_elt->next;
-          }
-          free(group_elt);  // Free the group's element in the list
-          break;
-      }
-      prev = group_elt;
-      group_elt = group_elt->next;
-  }
-
-  // Free the group structure and its members list
-  free(group->members);  // Free the members list container
-  free(group);            // Free the group itself
+  fprintf( ofile, "\n");
+  
   return 0;
 }
 
-int group_show(group_t *group) {
-    elt_t *cur = group->members->head = NULL;
+int user_display( user_t *u )
+{
+  switch( u->type ) {
+  case STUDENT_USER:
+    ((student_t *)u)->display((student_t *)u);
+    break;
+  case ANON_USER:
+    ((anon_t *)u)->display((anon_t *)u);
+    break;
+  case SPY_USER:
+    ((spy_t *)u)->display((spy_t *)u);
+    break;
+  default:
+    printf("No display for user %d\n", u->index);
+  }
 
-    fprintf(ofile, "======== Group: %d ========\n", group->index);
+  return 0;
+}
 
-    while (cur) {
-        user_t *user = (user_t *)cur->obj;
-        switch (user->type) {
-        case STUDENT_USER:
-            student_display((student_t *)user);
-            break;
-        case ANON_USER:
-            anon_display((anon_t *)user);
-            break;
-        case SPY_USER:
-            spy_display((spy_t *)user);
-            break;
-        }
-        cur = cur->next;
-    }
+ 
 
-    return 0;
+int anon_display( anon_t *a )
+{
+  fprintf( ofile, "****** anonymous (%d): %d *******\n", a->index, a->id );
+  
+  return 0;
+}
+
+ 
+
+ 
+
+int student_display( student_t *s )
+{
+  fprintf( ofile, "****** student (%d): %s *******\n", s->index, s->name );
+
+  return 0;
+}
+
+ 
+
+ 
+
+int spy_display( spy_t *m )
+{
+  fprintf( ofile, "****** spy (%d)  *******\n", m->index );
+  
+  return 0;
 }
 
 int group_remove(group_t *group, user_t *user) {

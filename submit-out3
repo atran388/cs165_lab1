@@ -1,0 +1,73 @@
+USER_NEW for index 10 type 0 and name/id alice: result 0
+USER_ADD for user 10 and type 0 to add info alice-key: result 0
+USER_NEW for index 20 type 1 and name/id 42: result 0
+USER_NEW for index 30 type 2 and name/id 86: result 0
+USER_ADD for user 30 and type 2 to add info 10: result 0
+****** student (10): alice *******
+USER_DISPLAY for user 10(0) : result 0
+****** anonymous (20): 42 *******
+USER_DISPLAY for user 20(1) : result 0
+****** spy (30)  *******
+USER_DISPLAY for user 30(2) : result 0
+GROUP_NEW: added new group 1
+GROUP_NEW: added new group 2
+GROUP_NEW: added new group 3
+USER_JOIN for user 10(0) to join group 1 : result 0
+USER_JOIN for user 20(1) to join group 1 : result 0
+USER_NEW for index 40 type 0 and name/id bob: result 0
+USER_ADD for user 40 and type 0 to add info bob-key: result 0
+USER_NEW for index 50 type 1 and name/id 43: result 0
+USER_JOIN for user 30(2) to join group 2 : result 0
+USER_JOIN for user 40(0) to join group 3 : result 0
+USER_JOIN for user 50(1) to join group 3 : result 0
+GROUP_SHOW: showing group 1: res: 0
+
+======== group: 1 ========
+
+****** anonymous (20): 42 *******
+****** student (10): alice *******
+
+GROUP_SHOW: showing group 2: res: 0
+
+======== group: 2 ========
+
+****** spy (30)  *******
+
+GROUP_SHOW: showing group 3: res: 0
+
+======== group: 3 ========
+
+****** anonymous (50): 43 *******
+****** student (40): bob *******
+
+GROUP_PURGE: removing group 1: res: 0
+GROUP_PURGE: removing group 2: res: 0
+GROUP_PURGE: removing group 3: res: 0
+GROUP_NEW: added new group 1
+GROUP_NEW: added new group 2
+GROUP_NEW: added new group 3
+USER_JOIN for user 10(0) to join group 3 : result 0
+USER_JOIN for user 20(1) to join group 3 : result 0
+USER_JOIN for user 30(2) to join group 1 : result 0
+USER_JOIN for user 40(0) to join group 1 : result 0
+USER_JOIN for user 50(1) to join group 2 : result 0
+GROUP_SHOW: showing group 1: res: 0
+
+======== group: 1 ========
+
+****** student (40): bob *******
+****** spy (30)  *******
+
+GROUP_SHOW: showing group 2: res: 0
+
+======== group: 2 ========
+
+****** anonymous (50): 43 *******
+
+GROUP_SHOW: showing group 3: res: 0
+
+======== group: 3 ========
+
+****** anonymous (20): 42 *******
+****** student (10): alice *******
+
