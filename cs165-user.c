@@ -33,109 +33,376 @@ int student_new( student_t *s, char *name )
 }
 
 int student_add( student_t *s, char *name ) {
-  if (strlen(name) < MAX_STRING) {
-    strcpy( s->secret , name );
+  if (strlen(name) >= MAX_STRING) {
+        return -1;  // Prevent buffer overflow
+    }
+    strncpy(s->secret, name, MAX_STRING);  // Copy string securely
     return 0;
-  } else {
-    return -1;
-  }
 }
 
 int student_change( student_t *s, char *name ) {
-  if (strlen(name) < MAX_STRING) {
-    strcpy( s->name , name );
+  if (strlen(name) >= MAX_STRING) {
+        return -1;  // Prevent buffer overflow
+    }
+    strncpy(s->name, name, MAX_STRING);  // Securely change name
     return 0;
-  } else {
-    return -1;
-  }
-  return 0;
 }
 
 int student_remove( student_t *s ) {
-  if (s == NULL) {
+  // figure out which student type it is: student anon or spy
+  // write helper function to clean up data fields of specific type
+  // free pointer
+
+  // memset( s->index , 0, MAX_STRING );
+  // memset( s->name , 0, MAX_STRING );
+  // memset( s->secret , 0, MAX_STRING );
+  // memset( s->group , 0, MAX_STRING );
+
+  if(s == NULL)
+  {
     return -1;
   }
-  if (s->group != NULL) {
-    free(s->group);
-  }
+
+  // // if(s->group != NULL)
+  // // {
+  // //   free(s->group);
+  // // }
   
   free(s);
 
   return 0;
 }
 
-int student_join( student_t *s, char *group_index ) {
-  if (s->group != NULL) {
-    return -1;
-  }
-  group_t* g = find_group(group_index);
-  group_add(g, (user_t*)s);
+int student_display( student_t *s ) {
+  fprintf(ofile, "****** Student (%d): %s ******\n", s->index, s->name);
+  return 0;
+}
 
+int student_join( student_t *s, char *group_index ) {
+  group_t *group = find_group(group_index);
+  if (!group) {
+      return -1;  // Group not found
+  }
+
+  // Add student to the group
+  elt_t *new_member = (elt_t *)malloc(sizeof(elt_t));
+
+  if (!new_member) {
+    // Handle memory allocation failure
+    return -1;
+}
+
+  new_member->obj = (void *)s;
+  new_member->next = group->members->head;
+  group->members->head = new_member;
+  s->group = group;  // Link student to the group
   return 0;
 }
 
 int student_leave( student_t *s ) {
-  return 0;
-}
-
-int user_display( user_t *u )
-{
-  switch( u->type ) {
-  case STUDENT_USER:
-    ((student_t *)u)->display((student_t *)u);
-    break;
-  case ANON_USER:
-    ((anon_t *)u)->display((anon_t *)u);
-    break;
-  case SPY_USER:
-    ((spy_t *)u)->display((spy_t *)u);
-    break;
-  default:
-    printf("No display for user %d\n", u->index);
+  if (!s->group) {
+      return -1;  // Not in a group
   }
 
+  group_remove(s->group, (user_t *)s);  // Remove student from the group
+  s->group = NULL;
   return 0;
 }
 
-int anon_display( anon_t *a )
+int spy_new(spy_t *m, int id)
 {
-  fprintf( ofile, "****** anonymous (%d): %d *******\n", a->index, a->id );
-  
+  m->id = id;
+  m->add = spy_add;
+  m->change = spy_change;
+  m->remove = spy_remove;
+  m->join = spy_join;
+  m->leave = spy_leave;
+  m->display = spy_display;
   return 0;
 }
 
-int student_display( student_t *s )
+int spy_add( spy_t *m, char *arg )
 {
-  fprintf( ofile, "****** student (%d): %s *******\n", s->index, s->name );
+  user_t *real_user = find_user(arg);
+  if (!real_user) {
+      return -1;
+  }
+  m->real = real_user;
+  return 0;
+}
 
+int spy_change( spy_t *m, char *id_str )
+{
+  int id = atoi(id_str);
+  m->id = id;
+  return 0;
+}
+
+int spy_remove( spy_t *a )
+{
+  free(a);
   return 0;
 }
 
 int spy_display( spy_t *m )
 {
-  fprintf( ofile, "****** spy (%d)  *******\n", m->index );
-  
+  if (!m) {
+      return -1;  // Check if the spy object is valid
+  }
+
+  // Display the spy's information
+  if (m->real) {
+      // If the spy is linked to a real user, display the real user's index
+      fprintf(ofile, "****** Spy (%d) ******\n", m->index);
+  } else {
+      // If no real user is linked, just display the spy's ID
+      fprintf(ofile, "Spy ID: %d, Not assigned to a real user\n", m->id);
+  }
+
   return 0;
 }
 
-int group_show( group_t *g )
+int spy_join( spy_t *a, char *group_index )
 {
-  fprintf( ofile, "\n======== group: %d ========\n\n", g->index );
-  
-  list_t *members = g->members;
-
-  if ( !members ) return -1;
-  
-  elt_t *e = members->head;
-  while ( e ) {
-    user_t *u = (user_t *)e->obj;
-    user_display( u );
-    e = e->next;
+  if (!a || !group_index) {
+      return -1;  // Invalid spy object or group index
   }
 
-  fprintf( ofile, "\n");
-  
+  // Find the group the spy wants to join
+  group_t *group = find_group(group_index);
+  if (!group) {
+      return -1;  // Group not found
+  }
+
+  // Add the spy to the group's members list
+  elt_t *new_member = (elt_t *)malloc(sizeof(elt_t));
+
+
+
+  if (!new_member) {
+      return -1;  // Memory allocation failure
+  }
+  new_member->obj = (void *)a;
+  new_member->next = group->members->head;
+  group->members->head = new_member;
+
+  // Link the spy to the group
+  a->group = group;
+
   return 0;
+}
+
+int spy_leave( spy_t *s )
+{
+  if (!s || !s->group) {
+        return -1;  // Invalid spy object or spy is not in any group
+    }
+
+    // Remove the spy from the group
+    group_remove(s->group, (user_t *)s);
+
+    // Unlink the spy from the group
+    s->group = NULL;
+
+    return 0;
+}
+
+int anon_new( anon_t *a, int id )
+{
+  a->id = id;
+  a->add = anon_add;
+  a->change = anon_change;
+  a->remove = anon_remove;
+  a->join = anon_join;
+  a->leave = anon_leave;
+  a->display = anon_display;
+  return 0;
+}
+
+int anon_add( anon_t *a, char *arg )
+{
+  return 0;
+}
+
+int anon_change( anon_t *a, char *id_str )
+{
+  int id = atoi(id_str);
+  a->id = id;
+  return 0;
+}
+
+int anon_remove( anon_t *a )
+{
+  free(a);
+  return 0;
+}
+
+int anon_display( anon_t *a )
+{
+  fprintf(ofile, "****** Anonymous (%d): %d ******\n", a->index, a->id);
+  return 0;
+}
+
+int anon_join( anon_t *a, char *group_index )
+{
+  group_t *group = find_group(group_index);
+  if (!group) {
+      return -1;  // Group not found
+  }
+
+  elt_t *new_member = (elt_t *)malloc(sizeof(elt_t));
+
+  if (!new_member) {
+    // Handle memory allocation failure
+    return -1;
+}
+
+  new_member->obj = (void *)a;
+  new_member->next = group->members->head;
+  group->members->head = new_member;
+  a->group = group;
+  return 0;
+}
+
+int anon_leave( anon_t *s )
+{
+  if (!s->group) {
+      return -1;  // Not in a group
+  }
+
+  group_remove(s->group, (user_t *)s);  // Remove anonymous user from the group
+  // s->group = NULL;
+  return 0;
+}
+
+group_t *find_group(char *group_index_str) {
+  int group_index = atoi(group_index_str);
+  elt_t *cur = users.groups->head;
+
+  while (cur) {
+      group_t *group = (group_t *)cur->obj;
+      if (group->index == group_index) {
+          return group;
+      }
+      cur = cur->next;
+  }
+  return NULL;  // Group not found
+}
+
+int group_purge(group_t *group) {
+  elt_t *cur = group->members->head = NULL;
+  elt_t *next;
+
+  // Free all group members
+  while (cur) {
+      next = cur->next;
+
+      user_t *user = (user_t *)cur->obj;
+      if (user) {
+          // Remove the user from the group and free the user
+          user_remove(user);
+      }
+
+      free(cur);  // Free the member element
+      cur = next;
+  }
+
+  // Remove the group from the system
+  elt_t *prev = NULL;
+  elt_t *group_elt = users.groups->head = NULL;
+  while (group_elt) {
+      if (group_elt->obj == group) {
+          if (prev) {
+              prev->next = group_elt->next;
+          } else {
+              users.groups->head = group_elt->next;
+          }
+          free(group_elt);  // Free the group's element in the list
+          break;
+      }
+      prev = group_elt;
+      group_elt = group_elt->next;
+  }
+
+  // Free the group structure and its members list
+  free(group->members);  // Free the members list container
+  free(group);            // Free the group itself
+  return 0;
+}
+
+int group_show(group_t *group) {
+    elt_t *cur = group->members->head = NULL;
+
+    fprintf(ofile, "======== Group: %d ========\n", group->index);
+
+    while (cur) {
+        user_t *user = (user_t *)cur->obj;
+        switch (user->type) {
+        case STUDENT_USER:
+            student_display((student_t *)user);
+            break;
+        case ANON_USER:
+            anon_display((anon_t *)user);
+            break;
+        case SPY_USER:
+            spy_display((spy_t *)user);
+            break;
+        }
+        cur = cur->next;
+    }
+
+    return 0;
+}
+
+int group_remove(group_t *group, user_t *user) {
+    elt_t *cur = group->members->head = NULL;
+    elt_t *prev = NULL;
+
+    while (cur) {
+        if (cur->obj == user) {
+            // Unlink the current element from the list
+            if (prev) {
+                prev->next = cur->next;
+            } else {
+                group->members->head = cur->next;
+            }
+
+            // Free the user and the list element
+            user_remove(user);  // Safely remove and free the user
+            free(cur);          // Free the current list element
+            return 0;
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+
+    return -1;  // User not found in the group
+}
+
+
+int user_remove(user_t *user) {
+    if (!user) {
+        return -1;
+    }
+
+    switch (user->type) {
+    case STUDENT_USER:
+        student_leave((student_t *)user);
+        free(user);  // Free the student
+        break;
+    case ANON_USER:
+        anon_leave((anon_t *)user);
+        free(user);  // Free the anonymous user
+        break;
+    case SPY_USER:
+        spy_leave((spy_t *)user);
+        free(user);  // Free the spy
+        break;
+    default:
+        return -1;
+    }
+
+    return 0;
 }
 
 /******************************************************************************
@@ -532,6 +799,13 @@ int apply_group_command( int cmd, char *cmdstr )
     group->index = atoi(group_index_str);
     group->members = (list_t *)malloc(sizeof(list_t));
     group->members->head = (elt_t *)NULL;
+
+    // Add group to the system's list of groups
+    elt_t *new_group = (elt_t *)malloc(sizeof(elt_t));
+    new_group->obj = (void *)group;
+    new_group->next = users.groups->head;
+    users.groups->head = new_group;
+
     fprintf( ofile, "GROUP_NEW: added new group %s\n", group_index_str );
     break;
   case GROUP_PURGE:
@@ -603,7 +877,7 @@ int main( int argc, char *argv[] )
 	 
 	// get input
 	line = (char *)malloc( len );
-	while (1)  // Task 1: get a line of input from the input file
+	while ((getline(&line, &len, ifile)) != -1)  // Task 1: get a line of input from the input file
 	  {
 	  
 	  cmdstr = line;
@@ -628,10 +902,9 @@ int main( int argc, char *argv[] )
 	  else {
 	    res = apply_user_command( cmd, cmdstr );
 	  }
+
 	}
 
+  free(line);
 	exit( res );
 }
-
-
-
